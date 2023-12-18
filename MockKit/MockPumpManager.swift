@@ -376,11 +376,14 @@ public final class MockPumpManager: TestingPumpManager {
         statusObservers.removeElement(observer)
     }
 
+    let replayPump = ReplayPump()
+    
     public func ensureCurrentPumpData(completion: ((Date?) -> Void)?) {
         // Change this to artificially increase the delay fetching the current pump data
         let fetchDelay = 0
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(fetchDelay)) {
-            
+        //DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(fetchDelay)) {
+        replayPump.downloadPumpEvents { replayedEvents in
+            self.injectPumpEvents(replayedEvents)
             self.state.finalizeFinishedDoses()
             
             self.storePumpEvents { (error) in

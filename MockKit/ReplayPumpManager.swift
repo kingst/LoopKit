@@ -11,62 +11,7 @@ import LoopKit
 import LoopKitUI
 import LoopTestingKit
 
-public class ReplayPumpManager: TestingPumpManager {
-    public var reservoirFillFraction: Double = 1.0
-    
-    public func injectPumpEvents(_ pumpEvents: [LoopKit.NewPumpEvent]) {
-        
-    }
-    
-    public static var onboardingMaximumBasalScheduleEntryCount: Int = 1
-    
-    public static var onboardingSupportedBasalRates: [Double] = []
-    
-    public static var onboardingSupportedBolusVolumes: [Double] = []
-    
-    public static var onboardingSupportedMaximumBolusVolumes: [Double] = []
-    
-    public var delegateQueue: DispatchQueue!
-    
-    public var supportedBasalRates: [Double] = []
-    
-    public var supportedBolusVolumes: [Double] = []
-    
-    public var supportedMaximumBolusVolumes: [Double] = []
-    
-    public var maximumBasalScheduleEntryCount: Int = 1
-    
-    public var minimumBasalScheduleEntryDuration: TimeInterval = 30.minutes
-    
-    public var pumpManagerDelegate: LoopKit.PumpManagerDelegate?
-    
-    public var pumpRecordsBasalProfileStartEvents: Bool = false
-    private static let deliveryUnitsPerMinute = 1.5
-    public var pumpReservoirCapacity: Double = 100.0
-    
-    public var lastSync: Date?
-    
-    public var status: LoopKit.PumpManagerStatus {
-        get {
-            return PumpManagerStatus(
-                timeZone: .current,
-                device: ReplayPumpManager.device,
-                pumpBatteryChargeRemaining: 1.0,
-                basalDeliveryState: .none,
-                bolusState: .noBolus,
-                insulinType: .humalog,
-                deliveryIsUncertain: false
-            )
-        }
-    }
-    
-    public func addStatusObserver(_ observer: LoopKit.PumpManagerStatusObserver, queue: DispatchQueue) {
-        
-    }
-    
-    public func removeStatusObserver(_ observer: LoopKit.PumpManagerStatusObserver) {
-        
-    }
+public class ReplayPump {
     let healthStore = HKHealthStore()
     private var cachedEventLogAuthToken: String?
     
@@ -107,165 +52,24 @@ public class ReplayPumpManager: TestingPumpManager {
         return cachedEventLogAuthToken
     }
     
-    public func ensureCurrentPumpData(completion: ((Date?) -> Void)?) {
+    public func downloadPumpEvents(completion: @escaping (([NewPumpEvent]) -> Void)) {
         Task {
             guard let authToken = await eventLogAuthToken() else {
                 print("AuthToken: nil")
-                completion?(nil)
+                DispatchQueue.main.async { completion([]) }
                 return
             }
             print("AuthToken: \(authToken)")
             let url = "https://event-log-server.uc.r.appspot.com/v1/event_log/query"
             guard let pumpEventsResponse: [EventLogQueryResponse] = await JsonHttp().get(url: url, headers: ["x-auth-token": authToken]) else {
                 print("AuthToken: no pump events")
-                completion?(nil)
+                DispatchQueue.main.async { completion([]) }
                 return
             }
-            self.lastSync = pumpEventsResponse.sorted(by: {$0.ctime < $1.ctime}).last?.ctime
-            let pumpEvents = pumpEventsResponse.compactMap({ $0.pumpEvents })
-            for pumpEvent in pumpEvents {
-                delegate.notify { delegate in
-                    delegate?.pumpManager(self, hasNewPumpEvents: pumpEvent, lastReconciliation: self.lastSync) { _ in }
-                }
-            }
-            completion?(nil)
+            let pumpEvents = pumpEventsResponse.compactMap({ $0.pumpEvents }).reduce([]) { $0 + $1 }
+            
+            DispatchQueue.main.async { completion(pumpEvents) }
         }
-    }
-    
-    public func setMustProvideBLEHeartbeat(_ mustProvideBLEHeartbeat: Bool) {
-        
-    }
-    
-    public func createBolusProgressReporter(reportingOn dispatchQueue: DispatchQueue) -> LoopKit.DoseProgressReporter? {
-        return nil
-    }
-    
-    public func estimatedDuration(toBolus units: Double) -> TimeInterval {
-        return .minutes(units / type(of: self).deliveryUnitsPerMinute)
-    }
-    
-    public func enactBolus(units: Double, activationType: LoopKit.BolusActivationType, completion: @escaping (LoopKit.PumpManagerError?) -> Void) {
-        
-    }
-    
-    public func cancelBolus(completion: @escaping (LoopKit.PumpManagerResult<LoopKit.DoseEntry?>) -> Void) {
-        
-    }
-    
-    public func enactTempBasal(unitsPerHour: Double, for duration: TimeInterval, completion: @escaping (LoopKit.PumpManagerError?) -> Void) {
-        
-    }
-    
-    public func suspendDelivery(completion: @escaping (Error?) -> Void) {
-        
-    }
-    
-    public func resumeDelivery(completion: @escaping (Error?) -> Void) {
-        
-    }
-    
-    public func syncBasalRateSchedule(items scheduleItems: [LoopKit.RepeatingScheduleValue<Double>], completion: @escaping (Result<LoopKit.BasalRateSchedule, Error>) -> Void) {
-        
-    }
-    
-    public func syncDeliveryLimits(limits deliveryLimits: LoopKit.DeliveryLimits, completion: @escaping (Result<LoopKit.DeliveryLimits, Error>) -> Void) {
-        
-    }
-    
-    public static let device = HKDevice(
-        name: ReplayPumpManager.managerIdentifier,
-        manufacturer: nil,
-        model: nil,
-        hardwareVersion: nil,
-        firmwareVersion: nil,
-        softwareVersion: "1.0",
-        localIdentifier: nil,
-        udiDeviceIdentifier: nil
-    )
-    
-    public var testingDevice: HKDevice {
-        return ReplayPumpManager.device
-    }
-    
-    public static let managerIdentifier = "ReplayPumpManager"
-    public var managerIdentifier: String {
-        return ReplayPumpManager.managerIdentifier
-    }
-    
-    public static let localizedTitle = "Replay Pump Manager"
-    public var localizedTitle: String { ReplayPumpManager.localizedTitle }
-    
-    public init() {
-        
-    }
-    
-    public required init?(rawState: RawStateValue) {
-        
-    }
-    
-    private let delegate = WeakSynchronizedDelegate<PumpManagerDelegate>()
-    
-    public var rawState: RawStateValue {
-        //return ["state": state.rawValue]
-        return ["state": "some state"]
-    }
-    
-    public var isOnboarded: Bool = true
-    
-    public var debugDescription: String = "Replay Pump Manager"
-    
-    public func acknowledgeAlert(alertIdentifier: LoopKit.Alert.AlertIdentifier, completion: @escaping (Error?) -> Void) {
-        completion(nil)
-    }
-    
-    public func getSoundBaseURL() -> URL? {
-        return nil
-    }
-    
-    public func getSounds() -> [LoopKit.Alert.Sound] {
-        return []
-    }
-}
-
-extension ReplayPumpManager: PumpManagerUI {
-    public static func setupViewController(initialSettings settings: LoopKitUI.PumpManagerSetupSettings, bluetoothProvider: LoopKit.BluetoothProvider, colorPalette: LoopKitUI.LoopUIColorPalette, allowDebugFeatures: Bool, allowedInsulinTypes: [LoopKit.InsulinType]) -> LoopKitUI.SetupUIResult<LoopKitUI.PumpManagerViewController, LoopKitUI.PumpManagerUI> {
-        .createdAndOnboarded(ReplayPumpManager())
-    }
-    
-    public func settingsViewController(bluetoothProvider: LoopKit.BluetoothProvider, colorPalette: LoopKitUI.LoopUIColorPalette, allowDebugFeatures: Bool, allowedInsulinTypes: [LoopKit.InsulinType]) -> LoopKitUI.PumpManagerViewController {
-        return PumpManagerSettingsNavigationViewController()
-    }
-    
-    public func deliveryUncertaintyRecoveryViewController(colorPalette: LoopKitUI.LoopUIColorPalette, allowDebugFeatures: Bool) -> (UIViewController & LoopKitUI.CompletionNotifying) {
-        return PumpManagerSettingsNavigationViewController()
-    }
-    
-    public func hudProvider(bluetoothProvider: LoopKit.BluetoothProvider, colorPalette: LoopKitUI.LoopUIColorPalette, allowedInsulinTypes: [LoopKit.InsulinType]) -> LoopKitUI.HUDProvider? {
-        return nil
-    }
-    
-    public static func createHUDView(rawValue: [String : Any]) -> LoopKitUI.BaseHUDView? {
-        return nil
-    }
-    
-    public static var onboardingImage: UIImage? {
-        return nil
-    }
-    
-    public var smallImage: UIImage? {
-        return nil
-    }
-    
-    public var pumpStatusHighlight: LoopKit.DeviceStatusHighlight? {
-        return nil
-    }
-    
-    public var pumpLifecycleProgress: LoopKit.DeviceLifecycleProgress? {
-        return nil
-    }
-    
-    public var pumpStatusBadge: LoopKitUI.DeviceStatusBadge? {
-        return nil
     }
 }
 
