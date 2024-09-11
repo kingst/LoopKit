@@ -202,11 +202,63 @@ fileprivate extension FloatingPoint {
     var fraction: Self { modf(self).1 }
 }
 
+enum RoundingRule {
+    case toNearestOrEven
+    case down
+    case up
+    case towardZero
+    case awayFromZero
+    case toNearestOrAwayFromZero
+}
+
 fileprivate extension Decimal {
-    func rounded(toPlaces scale: Int, roundingMode: NSDecimalNumber.RoundingMode = .plain) -> Decimal {
-        var result = Decimal()
-        var localCopy = self
-        NSDecimalRound(&result, &localCopy, scale, roundingMode)
+    func rounded(toPlaces scale: Int, roundingMode: RoundingRule = .toNearestOrEven) -> Decimal {
+        guard scale >= 0 else { return self }
+        
+        var result = self
+        var roundingFactor: Decimal = 1
+        
+        // Calculate the rounding factor (10^scale)
+        for _ in 0..<scale {
+            roundingFactor /= 10
+        }
+        
+        // Adjust the number based on the rounding rule
+        switch roundingMode {
+        case .toNearestOrEven, .toNearestOrAwayFromZero:
+            if self < 0 {
+                result -= roundingFactor / 2
+            } else {
+                result += roundingFactor / 2
+            }
+        case .up:
+            if self > 0 {
+                result += roundingFactor
+            }
+        case .down:
+            if self < 0 {
+                result -= roundingFactor
+            }
+        case .towardZero:
+            // No adjustment needed
+            break
+        case .awayFromZero:
+            if self < 0 {
+                result -= roundingFactor
+            } else {
+                result += roundingFactor
+            }
+        @unknown default:
+            // Handle any future cases
+            break
+        }
+        
+        // Truncate to the desired scale
+        let divisor = pow(10, scale)
+        result *= divisor
+        result = Decimal(Int64(truncating: result as NSNumber))
+        result /= divisor
+        
         return result
     }
 }
