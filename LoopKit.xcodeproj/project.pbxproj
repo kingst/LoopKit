@@ -66,6 +66,7 @@
 		1DFFB988271740EE0075AEAA /* MockSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFFB987271740EE0075AEAA /* MockSupport.swift */; };
 		1F5DAB2D2118CE9300048054 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1F5DAB2B2118CE9300048054 /* Localizable.strings */; };
 		1FE58796211D12CE004F24ED /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D68A9E31FE0A3D300522C49 /* Localizable.strings */; };
+		3B3B66EB2D8EF7FB00210B16 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43BA7154201E484D0058961E /* LoopKitUI.framework */; };
 		430157FA1C7EC03B00B64B63 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 430157F91C7EC03B00B64B63 /* AppDelegate.swift */; };
 		430157FC1C7EC03B00B64B63 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 430157FB1C7EC03B00B64B63 /* MasterViewController.swift */; };
 		430158011C7EC03B00B64B63 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 430157FF1C7EC03B00B64B63 /* Main.storyboard */; };
@@ -931,6 +932,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 430157F61C7EC03B00B64B63;
 			remoteInfo = "LoopKit Example";
+		};
+		3B3B66ED2D8EF7FB00210B16 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 43D8FDC21C728FDF0073BE78 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43BA7153201E484D0058961E;
+			remoteInfo = LoopKitUI;
 		};
 		4301581B1C7ECB5E00B64B63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2069,6 +2077,7 @@
 			files = (
 				43D8FDD61C728FDF0073BE78 /* LoopKit.framework in Frameworks */,
 				A9D3FF1D2A6C307E000C891D /* SwiftCharts in Frameworks */,
+				3B3B66EB2D8EF7FB00210B16 /* LoopKitUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3512,6 +3521,7 @@
 			);
 			dependencies = (
 				43D8FDD81C728FDF0073BE78 /* PBXTargetDependency */,
+				3B3B66EE2D8EF7FB00210B16 /* PBXTargetDependency */,
 			);
 			name = LoopKitTests;
 			packageProductDependencies = (
@@ -4763,6 +4773,11 @@
 			isa = PBXTargetDependency;
 			target = 430157F61C7EC03B00B64B63 /* LoopKit Example */;
 			targetProxy = 1DEE230324A6774900693C32 /* PBXContainerItemProxy */;
+		};
+		3B3B66EE2D8EF7FB00210B16 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43BA7153201E484D0058961E /* LoopKitUI */;
+			targetProxy = 3B3B66ED2D8EF7FB00210B16 /* PBXContainerItemProxy */;
 		};
 		4301581C1C7ECB5E00B64B63 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
